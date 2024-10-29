@@ -1,0 +1,128 @@
+// In prisma/tokenVault.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/tokenVault-client" // Output directory for the main client
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TOKEN_VAULT_DATABASE_URL") // Use a different environment variable for the token database
+}
+
+model AccountTokenVault {
+  id                 String   @id @default(uuid())
+  token              String   @unique
+  userId             String
+  accountNumber      String   @unique
+  accountNumberIndex Int      @default(autoincrement())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Optional: You can include additional fields as needed
+}
+
+model UpiTokenVault {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  pa        String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Optional: You can include additional fields as needed
+}
+
+model CreditTokenVault {
+  id           String   @id @default(uuid())
+  token        String   @unique
+  userId       String
+  creditNumber String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Optional: You can include additional fields as needed
+}
+
+model DebitTokenVault {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  debitNumber String   @unique // Store the encrypted account number
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Optional: You can include additional fields as needed
+}
+
+model EmailTokenVault {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  email     String   @unique // Store the encrypted account number
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Optional: You can include additional fields as needed
+}
+
+model PhoneTokenVault {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  phone     String   @unique // Store the encrypted account number
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Optional: You can include additional fields as needed
+}
+
+// DATABASE_URL=$TOKEN_VAULT_DATABASE_URL npx prisma studio --schema=prisma/tokenVault.prisma
+
+// 0
+// : 
+// amount
+// : 
+// 100
+// firstLetter
+// : 
+// "P"
+// transactionTime
+// : 
+// "2024-10-20T02:35:05.202Z"
+// type
+// : 
+// "received"
+// userId
+// : 
+// "95f1240c-f8e9-4ede-b009-f4a6e4ad7519"
+// username
+// : 
+// "priyanka"
+// [[Prototype]]
+// : 
+// Object
+
+// 0
+// : 
+// amount
+// : 
+// 100
+// firstLetter
+// : 
+// "Y"
+// transactionTime
+// : 
+// "2024-10-20T02:35:05.202Z"
+// type
+// : 
+// "paid"
+// userId
+// : 
+// "df62e0d1-e407-4cd4-8a67-a827a9397e63"
+// username
+// : 
+// "yash"
+// [[Prototype]]
+// : 
+// Object

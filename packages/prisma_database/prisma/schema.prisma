@@ -1,0 +1,162 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String              @id @default(uuid())
+  username         String
+  password         String
+  accountDetails   AccountDetails[]    // Relation to AccountDetails (One-to-Many)
+  personalDetails  PersonalDetails?    // One-to-One relation with PersonalDetails
+  upi              Upi[]               // Relation to Upi (One-to-Many)
+  debitCard        DebitCard[]
+  creditCard       CreditCard[]
+  balance          Balance[]
+  lock             Lock[]
+  loginPin         LoginPin[]
+  paymentPin         PaymentPin[]
+  sentTransfers     Transaction[]       @relation(name: "FromUserRelation")
+  receivedTransfers Transaction[]       @relation(name: "ToUserRelation")
+  sentRecent    RecentTransaction[]       @relation(name: "FromUserRecent")
+  receivedRecent RecentTransaction[]       @relation(name: "ToUserRecent")
+}
+
+model PersonalDetails {
+  id               String   @id @default(uuid())
+  address          String
+  pincode          String
+  aadharCardNo     Int       @unique
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id])
+}
+
+model AccountDetails {
+  id               String         @id @default(uuid())
+  ifsc             String            @unique
+  accountId        String
+  account          User           @relation(fields: [accountId], references: [id])
+  transactions     Transaction[]  // One-to-Many relation with Transactions
+}
+
+model Upi {
+  id               String         @id @default(uuid())
+  pn               String
+  cu               String
+  upi_id           String
+  user             User           @relation(fields: [upi_id], references: [id])
+  transactions     Transaction[]  // Relation to Transactions (One-to-Many)
+}
+
+model DebitCard {
+  id      String @id @default(uuid())
+  valid_Thur  String 
+  cvv  String @unique
+  user_id     String
+  user        User  @relation(fields: [user_id], references: [id])  
+  transaction  Transaction[]
+}
+
+model CreditCard {
+  id      String @id @default(uuid())
+  valid_Thur  String 
+  cvv  String @unique
+  user_id     String
+  user        User  @relation(fields: [user_id], references: [id])  
+  transaction Transaction[]
+}
+
+
+model Lock {
+  id         String      @id @default(uuid())
+  lockedId     String
+  amount     Int
+  purpose    String   // The reason or purpose for the lock (e.g., "purchase", "loan", etc.)
+  status     Status    
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [lockedId], references: [id])
+}
+
+model Balance {
+  id       String    @id @default(uuid())
+  balanceId   String   
+  amount   Int    @default(1000000)
+  user     User   @relation(fields: [balanceId], references: [id])
+}
+model LoginPin{
+  id String @id @default(uuid())
+  pin  String 
+  userId  String
+  user User   @relation(fields: [userId] , references: [id])
+}
+model PaymentPin{
+  id String @id @default(uuid())
+  pin  String 
+  userId  String
+  user User   @relation(fields: [userId] , references: [id])
+}
+model Transaction {
+  id                    String     @id @default(uuid())
+  amount     Int
+  transactionId         String     @unique @default(uuid())
+  transactionReferenceNo Int       @unique
+  transactionNote       String
+  transactionTime   DateTime @default(now())
+  mode     Mode        @default(upi)
+
+  fromUserId            String
+  fromUser              User       @relation(name: "FromUserRelation", fields: [fromUserId], references: [id])
+  toUserId              String
+  toUser                User       @relation(name: "ToUserRelation", fields: [toUserId], references: [id])
+
+  // Relation to AccountDetails
+  accountDetailsId      String?    // Made optional (nullable)
+  accountDetails        AccountDetails? @relation(fields: [accountDetailsId], references: [id])
+
+  // Relation to Upi
+  upiId                 String?    // Made optional (nullable)
+  uPi                   Upi?       @relation(fields: [upiId], references: [id])
+
+  // Relation to DebitCard
+  debitCardId           String?    // Made optional (nullable)
+  debitCard             DebitCard? @relation(fields: [debitCardId], references: [id])
+
+  // Relation to CreditCard
+  creditCardId          String?    // Made optional (nullable)
+  creditCard            CreditCard? @relation(fields: [creditCardId], references: [id])
+}
+
+model RecentTransaction {
+  id             String   @id @default(uuid())
+  transactionTime DateTime
+  username       String
+  firstLetter    String
+  mode           Mode     @default(upi)
+  fromUserId     String
+  fromUser       User     @relation(name: "FromUserRecent", fields: [fromUserId], references: [id])
+  toUserId       String
+  toUser         User     @relation(name: "ToUserRecent", fields: [toUserId], references: [id])
+
+  @@unique([fromUserId, toUserId]) // Composite unique constraint
+}
+
+
+enum Status {
+  canceled
+  active
+  completed
+}
+enum Mode {
+  upi
+  accountNo
+  debitCard
+  creditCard
+}
